@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        input { padding: 10px; width: 80%; margin-bottom: 10px; }
+        button { padding: 10px 20px; cursor: pointer; margin: 5px; }
+        #qrcode { margin-top: 20px; }
+        .button-container { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h2>QR Code Generator</h2>
+    <input type="text" id="text" placeholder="Enter a URL or text">
+    <button onclick="generateQR()">Generate QR Code</button>
+    <div id="qrcode"></div>
+    <div class="button-container">
+        <button id="copyButton" onclick="copyQRCodeToClipboard()" disabled>Copy QR Code to Clipboard</button>
+        <button id="downloadButton" onclick="downloadQRCode()" disabled>Download QR Code</button>
+    </div>
+
+    <script>
+        let qrCodeData = null;
+
+        function generateQR() {
+            let qrDiv = document.getElementById("qrcode");
+            qrDiv.innerHTML = ""; // Remove old QR code
+            let text = document.getElementById("text").value;
+            if (text.trim() === "") {
+                alert("Please enter a valid URL or text.");
+                return;
+            }
+
+            // Save the entered text for clipboard use
+            qrCodeData = text;
+
+            // Generate the QR code
+            new QRCode(qrDiv, {
+                text: text,
+                width: 200,
+                height: 200
+            });
+
+            // Enable the buttons
+            document.getElementById("copyButton").disabled = false;
+            document.getElementById("downloadButton").disabled = false;
+        }
+
+        function copyQRCodeToClipboard() {
+            let qrDiv = document.getElementById("qrcode");
+
+            // Find the generated QR code (either <canvas> or <img>)
+            let qrCanvas = qrDiv.querySelector("canvas");
+
+            if (!qrCanvas) {
+                alert("There is no QR code to copy.");
+                return;
+            }
+
+            // Use the Canvas API to convert canvas to blob
+            qrCanvas.toBlob(blob => {
+                const item = new ClipboardItem({ "image/png": blob });
+                navigator.clipboard.write([item])
+                    .then(() => {
+                        alert("QR Code copied to clipboard!");
+                    })
+                    .catch(err => {
+                        console.error("Error copying QR code to clipboard:", err);
+                        alert("Failed to copy QR code. Please try again.");
+                    });
+            });
+        }
+
+        function downloadQRCode() {
+            let qrDiv = document.getElementById("qrcode");
+            let qrImage = qrDiv.querySelector("img");
+
+            if (!qrImage) {
+                alert("There is no QR code to download.");
+                return;
+            }
+
+            // Get the image source
+            let imageUrl = qrImage.src;
+
+            // Create a temporary link for downloading
+            let link = document.createElement("a");
+            link.href = imageUrl;
+            link.download = "qrcode.png"; // File name
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
